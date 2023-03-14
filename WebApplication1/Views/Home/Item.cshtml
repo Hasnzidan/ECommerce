@@ -1,0 +1,80 @@
+﻿
+@model List<Product>
+
+<main id="main">
+
+    <!-- ======= Breadcrumbs ======= -->
+    <section id="breadcrumbs" class="breadcrumbs">
+        <div class="container">
+
+            <div class="d-flex justify-content-between align-items-center">
+                <h2></h2>
+                <ol>
+                    <li><a href="/home">Home</a></li>
+                    <li>Product Details</li>
+                </ol>
+            </div>
+
+        </div>
+    </section><!-- End Breadcrumbs -->
+    <!-- ======= Portfolio Details Section ======= -->
+    <section id="portfolio-details" class="portfolio-details">
+        <div class="container">
+
+            <div class="row gy-4">
+
+                <div class="col-lg-8" style="width:66%;">
+
+                    @foreach (var item in Model)
+                    {
+                        <img src="../../@item.Photo" style="width:50%;"/>
+                    }
+
+                    <section id="testimonials" class="testimonials section-bg" style="width: 50%; padding: 0 0;">
+                        <div class="container" data-aos="fade-up">
+                            <div class="testimonials-slider swiper" data-aos="fade-up" data-aos-delay="100">
+                                <div class="swiper-wrapper">
+                                    @foreach (var item in (List<ProductImages>)ViewBag.productimages)
+                                    {
+                                        <div class="swiper-slide">
+                                            <p>
+                                                <img src="../../@item.Image" style="width: 100%;">
+                                            </p>
+                                        </div>
+                                        <!-- End testimonial item -->
+                                    }
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="swiper-pagination">
+
+                        </div>
+                    </section>
+
+                </div>
+                <div class="col-lg-4">
+                    <div class="portfolio-info">
+
+                        @foreach (var item in Model)
+                        {
+                            <h3>@item.Name</h3>
+
+                            <ul>
+                                <li><h2>Description</h2></li>
+
+                                <li> @item.Description:</li>
+
+                                
+                                <li><h2>Price</h2><h1>@item.Price LE</h1></li>
+                            </ul>
+                        }
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    
+    </section><!-- End Portfolio Details Section -->
+
+</main><!-- End #main -->

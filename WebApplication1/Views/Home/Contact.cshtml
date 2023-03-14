@@ -1,0 +1,73 @@
+﻿
+
+@model Review
+
+
+
+
+<section id="contact" class="contact section-bg">
+      <div class="container aos-init aos-animate" data-aos="fade-up">
+
+        <div class="section-title">
+          <h2>Contact</h2>
+          <p>Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit in iste officiis commodi quidem hic quas.</p>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="info-box mb-4">
+              <i class="bx bx-map"></i>
+              <h3>Our Address</h3>
+              <p>A108 Adam Street, New York, NY 535022</p>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-6">
+            <div class="info-box  mb-4">
+              <i class="bx bx-envelope"></i>
+              <h3>Email Us</h3>
+              <p>contact@example.com</p>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-6">
+            <div class="info-box  mb-4">
+              <i class="bx bx-phone-call"></i>
+              <h3>Call Us</h3>
+              <p>+1 5589 55488 55</p>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-lg-6 ">
+                 <iframe class="mb-4 mb-lg-0" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d13685.3016014655!2d31.232504730606895!3d30.961400255265023!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14f7a2eaad480117%3A0x283ca478d01a11ff!2sSamannoud%2C%20Samannoud%20City%2C%20Samanoud%2C%20Gharbia%20Governorate%206783504!5e0!3m2!1sen!2seg!4v1660172054821!5m2!1sen!2seg" frameborder="0" style="border:0; width: 100%; height: 384px;" allowfullscreen=""></iframe>
+            </div>
+
+          <div class="col-lg-6">
+            <form  asp-controller="Home" asp-action="Savereview" method="post">
+              <div class="row">
+                <div class="col-md-6 form-group">
+                  <input type="text" id="Name" name="Name" class="form-control"  placeholder="Your Name" required="">
+                </div>
+                <div class="col-md-6 form-group mt-3 mt-md-0">
+                  <input type="email" class="form-control" name="Email" id="Email" placeholder="Your Email" required="">
+                </div>
+              </div>
+              <div class="form-group mt-3">
+                <input type="text" class="form-control" name="Subject" id="Subject" placeholder="Subject" required="">
+              </div>
+              <div class="form-group mt-3">
+                <textarea class="form-control" id="Description" name="Description" rows="5" placeholder="Message" required=""></textarea>
+              </div>
+              
+              <div class="text-center"><button type="submit">Send Message</button></div>
+            </form>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
