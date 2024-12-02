@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
+using System.IO;
+using Microsoft.AspNetCore.Http;
 
 namespace WebApplication1.Controllers
 {
@@ -53,10 +55,36 @@ namespace WebApplication1.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Photo,Description,ClassFilter")] Category category)
+        public async Task<IActionResult> Create([Bind("Id,Name,Description,ClassFilter")] Category category, IFormFile PhotoFile)
         {
             if (ModelState.IsValid)
             {
+                if (PhotoFile != null && PhotoFile.Length > 0)
+                {
+                    // Generate a unique filename
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + PhotoFile.FileName;
+                    
+                    // Combine the uploads path
+                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "categories");
+                    
+                    // Create directory if it doesn't exist
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+                    
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    
+                    // Save the file
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await PhotoFile.CopyToAsync(fileStream);
+                    }
+                    
+                    // Save the relative path to the database
+                    category.Photo = Path.Combine("uploads", "categories", uniqueFileName).Replace("\\", "/");
+                }
+                
                 _context.Add(category);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));

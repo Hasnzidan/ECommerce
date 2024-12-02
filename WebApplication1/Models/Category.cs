@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 // Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
@@ -11,7 +11,8 @@ namespace WebApplication1.Models
     {
         public Category()
         {
-            Product = new HashSet<Product>();
+            Products = new HashSet<Product>();
+            IsActive = true; // Default value
         }
 
         public int Id { get; set; }
@@ -19,7 +20,8 @@ namespace WebApplication1.Models
         public string Photo { get; set; }
         public string Description { get; set; }
         public string ClassFilter { get; set; }
+        public bool IsActive { get; set; }
 
-        public virtual ICollection<Product> Product { get; set; }
+        public virtual ICollection<Product> Products { get; set; }
     }
 }

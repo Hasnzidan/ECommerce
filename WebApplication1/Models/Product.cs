@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 // Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
@@ -19,16 +19,15 @@ namespace WebApplication1.Models
         public string Name { get; set; }
         public string Description { get; set; }
         public decimal? Price { get; set; }
-        public int? Catid { get; set; }
+        public decimal? OldPrice { get; set; }
         public string Photo { get; set; }
-        public string Type { get; set; }
-        public string SupplierName { get; set; }
-        public DateTime? EntryDate { get; set; }
-        public string ReviewUrl { get; set; }
-        public int? Quantity { get; set; }
-        public decimal? Priceafterdiscount { get; set; }
+        public int? CategoryId { get; set; }
+        public bool IsAvailable { get; set; } = true;
+        public bool IsFeatured { get; set; } = false;
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
-        public virtual Category Cat { get; set; }
+        public virtual Category Category { get; set; }
         public virtual ICollection<Cart> Cart { get; set; }
         public virtual ICollection<ProductImages> ProductImages { get; set; }
     }

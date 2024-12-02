@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -37,43 +37,54 @@ namespace WebApplication1.Models
         {
             modelBuilder.Entity<Cart>(entity =>
             {
+                entity.Property(e => e.Id).HasColumnName("ID");
+                entity.Property(e => e.ProductId).HasColumnName("ProductID");
+                entity.Property(e => e.Qty).HasDefaultValueSql("((1))");
+                entity.Property(e => e.UserId).HasColumnName("UserID");
+
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.Cart)
                     .HasForeignKey(d => d.ProductId)
                     .HasConstraintName("FK_Cart_Product");
             });
 
+            modelBuilder.Entity<Category>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("ID");
+                entity.Property(e => e.Name).HasMaxLength(50);
+                entity.Property(e => e.Photo).HasMaxLength(100);
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.ClassFilter).HasMaxLength(50);
+                entity.Property(e => e.IsActive)
+                    .IsRequired()
+                    .HasDefaultValue(true);
+            });
+
             modelBuilder.Entity<Product>(entity =>
             {
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Id).HasColumnName("ID");
+                entity.Property(e => e.Name).HasMaxLength(100);
+                entity.Property(e => e.Description).HasMaxLength(1000);
+                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.OldPrice).HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.Photo).HasMaxLength(100);
+                entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
+                entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
-                entity.Property(e => e.EntryDate).HasColumnType("date");
-
-                entity.Property(e => e.Price).HasColumnType("decimal(18, 0)");
-
-                entity.Property(e => e.Priceafterdiscount)
-                    .HasColumnName("priceafterdiscount")
-                    .HasColumnType("decimal(18, 0)");
-
-                entity.Property(e => e.Quantity).HasColumnName("quantity");
-
-                entity.Property(e => e.SupplierName).HasMaxLength(50);
-
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasMaxLength(50);
-
-                entity.HasOne(d => d.Cat)
-                    .WithMany(p => p.Product)
-                    .HasForeignKey(d => d.Catid)
+                entity.HasOne(d => d.Category)
+                    .WithMany(p => p.Products)
+                    .HasForeignKey(d => d.CategoryId)
                     .HasConstraintName("FK_Product_Category");
             });
 
             modelBuilder.Entity<ProductImages>(entity =>
             {
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.Image).HasColumnName("image");
+                entity.Property(e => e.Id).HasColumnName("ID");
+                entity.Property(e => e.ProductId).HasColumnName("ProductID");
+                entity.Property(e => e.ImagePath).HasMaxLength(200);
+                entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.ProductImages)

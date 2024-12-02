@@ -1,52 +1,240 @@
-﻿
+@model IEnumerable<WebApplication1.Models.Product>
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    ViewData["Title"] = "TP-TECH - Your Tech Store";
+    var token = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+}
 
-
-@model List<Category>
-
-
-<section id="portfolio" class="portfolio">
-    <div class="container aos-init aos-animate" data-aos="fade-up">
-
-        <div class="section-title">
-            <h2>المنتجات</h2>
-            <p> كل ما تتمناه واكتر</p>
-        </div>
-
+<!-- Hero Section -->
+<section id="hero" class="d-flex align-items-center">
+    <div class="container">
         <div class="row">
-            <div class="col-lg-12 d-flex justify-content-center">
-                <ul id="portfolio-flters">
-                    <li data-filter="*" class="filter-active">كل المنتجات</li>
-
-                    @foreach (var item in Model)
-                    {
-                        <li data-filter="._@item.Id">@item.Name</li>
-
-                    }
-                </ul>
+            <div class="col-lg-6 pt-5 pt-lg-0 order-2 order-lg-1">
+                <h1>Welcome to TP-TECH</h1>
+                <h2>Your one-stop destination for premium tech products</h2>
+                <a href="#featured-categories" class="btn-get-started scrollto">Explore Now</a>
             </div>
-        </div>
-
-        <div class="row portfolio-container" style="position: relative; height: 1267.11px;">
-
-            @foreach (var item in (List<Product>)ViewBag.Products)
-            {
-                <div class="col-lg-4 col-md-6 portfolio-item _@item.Catid">
-                    <div class="portfolio-wrap">
-                        <img src="../../@item.Photo" class="img-fluid" alt="">
-                        <div class="portfolio-info">
-                            <h4>@item.Name</h4>
-                            <p>@item.Price </p>
-                        </div>
-                        <div class="portfolio-links">
-                            <a href="../../@item.Photo" data-gallery="portfolioGallery" class="portfolio-lightbox" title="@item.Description"><i class="bx bx-plus"></i></a>
-                            <a href="/home/item/@item.Id" title="More Details"><i class="bx bx-link"></i></a>
-                        </div>
-                    </div>
-                </div>
-             }
+            <div class="col-lg-6 order-1 order-lg-2 hero-img">
+                <img src="/assets/img/hero-img.png" class="img-fluid animated" alt="">
+            </div>
         </div>
     </div>
 </section>
 
+<main id="main">
+    <!-- Featured Categories Section -->
+    <section id="featured-categories" class="featured-categories section-bg">
+        <div class="container">
+            <div class="section-title">
+                <h2>Categories</h2>
+                <p>Explore Our Product Categories</p>
+            </div>
 
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="category-card">
+                        <div class="icon-box">
+                            <i class="bi bi-laptop"></i>
+                            <h3>Laptops</h3>
+                            <p>Latest laptops from top brands</p>
+                            <a href="/home/products?category=laptops" class="btn-learn-more">View Products</a>
+                        </div>
+                    </div>
+                </div>
 
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="category-card">
+                        <div class="icon-box">
+                            <i class="bi bi-phone"></i>
+                            <h3>Smartphones</h3>
+                            <p>Premium smartphones and accessories</p>
+                            <a href="/home/products?category=phones" class="btn-learn-more">View Products</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="category-card">
+                        <div class="icon-box">
+                            <i class="bi bi-headset"></i>
+                            <h3>Audio</h3>
+                            <p>Headphones, speakers, and more</p>
+                            <a href="/home/products?category=audio" class="btn-learn-more">View Products</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="category-card">
+                        <div class="icon-box">
+                            <i class="bi bi-cpu"></i>
+                            <h3>Components</h3>
+                            <p>PC parts and components</p>
+                            <a href="/home/products?category=components" class="btn-learn-more">View Products</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products Section -->
+    <section id="featured-products" class="featured-products">
+        <div class="container">
+            <div class="section-title">
+                <h2>Products</h2>
+                <p>Featured Products</p>
+            </div>
+
+            <div class="row">
+                @foreach (var product in Model)
+                {
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="product-card">
+                            <div class="product-img">
+                                <a href="@Url.Action("Item", "Home", new { id = product.Id })">
+                                    @if (!string.IsNullOrEmpty(product.Photo))
+                                    {
+                                        <img src="/@product.Photo" class="img-fluid" alt="@product.Name">
+                                    }
+                                    else
+                                    {
+                                        <img src="/assets/img/default-product.jpg" class="img-fluid" alt="@product.Name">
+                                    }
+                                </a>
+                                @if (product.OldPrice.HasValue && product.OldPrice > product.Price)
+                                {
+                                    <div class="discount-badge">
+                                        @{
+                                            var discountPercentage = ((product.OldPrice - product.Price) / product.OldPrice * 100)?.ToString("0");
+                                        }
+                                        -@discountPercentage%
+                                    </div>
+                                }
+                            </div>
+                            <div class="product-info">
+                                <h4><a href="@Url.Action("Item", "Home", new { id = product.Id })">@product.Name</a></h4>
+                                <p class="description">@(string.IsNullOrEmpty(product.Description) ? "No description available" : product.Description)</p>
+                                <div class="price-container">
+                                    @if (product.OldPrice.HasValue && product.OldPrice > product.Price)
+                                    {
+                                        <span class="old-price">$@product.OldPrice?.ToString("0.00")</span>
+                                    }
+                                    <span class="current-price">$@product.Price?.ToString("0.00")</span>
+                                </div>
+                                <div class="product-actions">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-primary add-to-cart" onclick="addToCart(@product.Id, 1)">
+                                        <i class="bi bi-cart-plus"></i> Add to Cart
+                                    </button>
+                                    <a href="@Url.Action("Item", "Home", new { id = product.Id })" class="btn btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us Section -->
+    <section id="why-us" class="why-us section-bg">
+        <div class="container">
+            <div class="section-title">
+                <h2>Why Choose Us</h2>
+                <p>Why TP-TECH is Your Best Choice</p>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="why-us-card">
+                        <div class="icon"><i class="bi bi-shield-check"></i></div>
+                        <h4>Quality Guaranteed</h4>
+                        <p>All our products are genuine and come with official warranty</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="why-us-card">
+                        <div class="icon"><i class="bi bi-truck"></i></div>
+                        <h4>Fast Delivery</h4>
+                        <p>Free shipping on orders over $500 with quick delivery</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="why-us-card">
+                        <div class="icon"><i class="bi bi-headset"></i></div>
+                        <h4>24/7 Support</h4>
+                        <p>Our customer support team is always ready to help</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+</div>
+
+@section Scripts {
+    <script>
+        function addToCart(productId, quantity) {
+            $.ajax({
+                url: '/Cart/AddToCart',
+                type: 'POST',
+                data: {
+                    productId: productId,
+                    quantity: quantity,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        updateCartCount();
+                        showToast('Success', 'Product added to cart successfully!', 'success');
+                    } else {
+                        showToast('Error', response.message || 'Failed to add product to cart.', 'error');
+                    }
+                },
+                error: function() {
+                    showToast('Error', 'Failed to add product to cart. Please try again.', 'error');
+                }
+            });
+        }
+
+        function showToast(title, message, type) {
+            $('.toast').toast('hide');
+            const toast = $(`
+                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header ${type === 'success' ? 'bg-success' : 'bg-danger'} text-white">
+                        <strong class="me-auto">${title}</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `);
+            $('.toast-container').append(toast);
+            toast.toast('show');
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function updateCartCount() {
+            $.get('/Cart/GetCartCount', function(count) {
+                $('.cart-badge').text(count);
+            });
+        }
+
+        // Initialize AOS
+        AOS.init({
+            duration: 1000,
+            easing: 'ease-in-out',
+            once: true,
+            mirror: false
+        });
+    </script>
+}

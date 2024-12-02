@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 // Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
@@ -11,7 +11,9 @@ namespace WebApplication1.Models
     {
         public int Id { get; set; }
         public int? ProductId { get; set; }
-        public string Image { get; set; }
+        public string ImagePath { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         public virtual Product Product { get; set; }
     }

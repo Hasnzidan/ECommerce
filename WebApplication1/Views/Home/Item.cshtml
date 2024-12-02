@@ -1,80 +1,228 @@
-﻿
-@model List<Product>
+@model WebApplication1.Models.Product
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    ViewData["Title"] = Model.Name;
+    var token = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+}
 
 <main id="main">
-
     <!-- ======= Breadcrumbs ======= -->
     <section id="breadcrumbs" class="breadcrumbs">
         <div class="container">
-
             <div class="d-flex justify-content-between align-items-center">
-                <h2></h2>
+                <h2>@Model.Name</h2>
                 <ol>
-                    <li><a href="/home">Home</a></li>
-                    <li>Product Details</li>
+                    <li><a href="@Url.Action("Index", "Home")">Home</a></li>
+                    @if (Model.Category != null)
+                    {
+                        <li><a href="@Url.Action("Category", "Home", new { categoryId = Model.Category.Id })">@Model.Category.Name</a></li>
+                    }
+                    <li>@Model.Name</li>
                 </ol>
             </div>
-
         </div>
-    </section><!-- End Breadcrumbs -->
-    <!-- ======= Portfolio Details Section ======= -->
-    <section id="portfolio-details" class="portfolio-details">
+    </section>
+
+    <!-- ======= Product Details Section ======= -->
+    <section id="product-details" class="product-details">
         <div class="container">
-
             <div class="row gy-4">
-
-                <div class="col-lg-8" style="width:66%;">
-
-                    @foreach (var item in Model)
-                    {
-                        <img src="../../@item.Photo" style="width:50%;"/>
-                    }
-
-                    <section id="testimonials" class="testimonials section-bg" style="width: 50%; padding: 0 0;">
-                        <div class="container" data-aos="fade-up">
-                            <div class="testimonials-slider swiper" data-aos="fade-up" data-aos-delay="100">
-                                <div class="swiper-wrapper">
-                                    @foreach (var item in (List<ProductImages>)ViewBag.productimages)
+                <div class="col-lg-6">
+                    <div class="product-gallery">
+                        <div class="main-image">
+                            @if (!string.IsNullOrEmpty(Model.Photo))
+                            {
+                                <img src="/@Model.Photo" alt="@Model.Name" class="img-fluid">
+                            }
+                            else
+                            {
+                                <img src="/images/default-product.jpg" alt="@Model.Name" class="img-fluid">
+                            }
+                        </div>
+                        
+                        @if (Model.ProductImages != null && Model.ProductImages.Any())
+                        {
+                            <div class="thumbnails mt-3">
+                                <div class="row g-2">
+                                    @foreach (var image in Model.ProductImages)
                                     {
-                                        <div class="swiper-slide">
-                                            <p>
-                                                <img src="../../@item.Image" style="width: 100%;">
-                                            </p>
+                                        <div class="col-3">
+                                            <img src="/@image.ImagePath" alt="@Model.Name" class="img-fluid thumbnail">
                                         </div>
-                                        <!-- End testimonial item -->
                                     }
                                 </div>
-
                             </div>
-                        </div>
-                        <div class="swiper-pagination">
-
-                        </div>
-                    </section>
-
-                </div>
-                <div class="col-lg-4">
-                    <div class="portfolio-info">
-
-                        @foreach (var item in Model)
-                        {
-                            <h3>@item.Name</h3>
-
-                            <ul>
-                                <li><h2>Description</h2></li>
-
-                                <li> @item.Description:</li>
-
-                                
-                                <li><h2>Price</h2><h1>@item.Price LE</h1></li>
-                            </ul>
                         }
                     </div>
                 </div>
 
+                <div class="col-lg-6">
+                    <div class="product-info">
+                        <h1 class="product-title">@Model.Name</h1>
+                        
+                        <div class="product-price mb-4">
+                            @if (Model.OldPrice.HasValue && Model.OldPrice > Model.Price)
+                            {
+                                <span class="old-price">$@Model.OldPrice?.ToString("0.00")</span>
+                                <span class="discount-badge">
+                                    @{
+                                        var discountPercentage = ((Model.OldPrice - Model.Price) / Model.OldPrice * 100)?.ToString("0");
+                                    }
+                                    -@discountPercentage%
+                                </span>
+                            }
+                            <span class="current-price">$@Model.Price?.ToString("0.00")</span>
+                        </div>
+
+                        <div class="product-description mb-4">
+                            <h4>Description</h4>
+                            <p>@(string.IsNullOrEmpty(Model.Description) ? "No description available" : Model.Description)</p>
+                        </div>
+
+                        <div class="product-meta mb-4">
+                            @if (Model.Category != null)
+                            {
+                                <div class="category">
+                                    <strong>Category:</strong>
+                                    <a href="@Url.Action("Category", "Home", new { categoryId = Model.Category.Id })">@Model.Category.Name</a>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="product-actions">
+                            <div class="quantity-selector mb-3">
+                                <label for="quantity">Quantity:</label>
+                                <div class="input-group" style="width: 130px;">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(-1)">-</button>
+                                    <input type="number" class="form-control text-center" id="quantity" value="1" min="1">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(1)">+</button>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-primary btn-lg add-to-cart" onclick="addToCart(@Model.Id, $('#quantity').val())">
+                                <i class="bi bi-cart-plus"></i> Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    
-    </section><!-- End Portfolio Details Section -->
+    </section>
+</main>
 
-</main><!-- End #main -->
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+<style>
+    .product-gallery .main-image {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        background: #fff;
+    }
+
+    .product-gallery .thumbnail {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .product-gallery .thumbnail:hover {
+        border-color: #0d6efd;
+    }
+
+    .product-title {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .old-price {
+        text-decoration: line-through;
+        color: #6c757d;
+        margin-right: 10px;
+    }
+
+    .current-price {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #0d6efd;
+    }
+
+    .discount-badge {
+        background: #dc3545;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        margin-right: 10px;
+    }
+
+    .quantity-selector .form-control {
+        text-align: center;
+    }
+
+    .quantity-selector .btn {
+        width: 38px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function updateQuantity(change) {
+            var input = document.getElementById('quantity');
+            var newValue = parseInt(input.value) + change;
+            if (newValue >= 1) {
+                input.value = newValue;
+            }
+        }
+
+        function addToCart(productId, quantity) {
+            $.ajax({
+                url: '/Home/AddToCart',
+                type: 'POST',
+                data: {
+                    productId: productId,
+                    quantity: quantity,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (result) {
+                    showToast('Success', 'Product added to cart!', 'success');
+                    updateCartCount(result.cartCount);
+                },
+                error: function () {
+                    showToast('Error', 'Failed to add product to cart', 'error');
+                }
+            });
+        }
+
+        function showToast(title, message, type) {
+            $('.toast').toast('hide');
+            const toast = $(`
+                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">${title}</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `);
+            $('.toast-container').append(toast);
+            toast.toast('show');
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function updateCartCount(count) {
+            $.get('/home/cartcount', function(count) {
+                $('.cart-badge').text(count);
+            });
+        }
+
+        // Thumbnail image click handler
+        $('.thumbnail').click(function() {
+            var newSrc = $(this).attr('src');
+            $('.main-image img').attr('src', newSrc);
+        });
+    </script>
+}

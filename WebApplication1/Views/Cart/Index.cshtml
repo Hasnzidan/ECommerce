@@ -1,0 +1,169 @@
+@model List<WebApplication1.Models.Cart>
+@{
+    ViewData["Title"] = "Shopping Cart";
+    var antiforgeryToken = Html.AntiForgeryToken();
+}
+
+<div class="cart-container">
+    <div class="container">
+        @antiforgeryToken
+        <div class="cart-header">
+            <h2 class="cart-title">Shopping Cart</h2>
+        </div>
+        
+        @if (!User.Identity.IsAuthenticated)
+        {
+            <div class="cart-card">
+                <div class="text-center p-4">
+                    <h4>Please log in to view your cart</h4>
+                    <p>You need to be logged in to manage your shopping cart.</p>
+                    <a href="/Identity/Account/Login" class="btn btn-primary">Log In</a>
+                </div>
+            </div>
+        }
+        else if (Model != null && Model.Any())
+        {
+            <div class="cart-card">
+                <div class="table-responsive">
+                    <table class="table cart-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr data-cart-id="@item.Id">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (item.Product?.Photo != null)
+                                            {
+                                                <img src="/@item.Product.Photo" alt="@item.Product.Name" class="product-image me-3">
+                                            }
+                                            <div>
+                                                <h6 class="product-name">@item.Product?.Name</h6>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="price">$@item.Product?.Price</span>
+                                    </td>
+                                    <td>
+                                        <div class="quantity-control">
+                                            <button class="quantity-btn" onclick="updateQuantity(@item.Id, -1)">-</button>
+                                            <input type="text" class="quantity-input" value="@item.Qty" readonly>
+                                            <button class="quantity-btn" onclick="updateQuantity(@item.Id, 1)">+</button>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="price">$@(item.Product?.Price * item.Qty)</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-outline-danger remove-btn" onclick="removeFromCart(@item.Id)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="cart-card empty-cart">
+                <div class="text-center p-4">
+                    <i class="bi bi-cart-x display-4 mb-3"></i>
+                    <h4>Your cart is empty</h4>
+                    <p>Start shopping to add items to your cart.</p>
+                    <a href="/" class="btn btn-primary">Continue Shopping</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function updateQuantity(cartId, change) {
+            try {
+                const response = await fetch('/Cart/UpdateQuantity', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ cartId, change })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    location.reload();
+                } else {
+                    showToast('Error', result.message || 'Failed to update quantity', 'danger');
+                }
+            } catch (error) {
+                showToast('Error', 'Failed to update quantity', 'danger');
+            }
+        }
+
+        async function removeFromCart(cartId) {
+            if (!confirm('Are you sure you want to remove this item?')) return;
+
+            try {
+                const response = await fetch('/Cart/RemoveFromCart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ cartId })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    location.reload();
+                } else {
+                    showToast('Error', result.message || 'Failed to remove item', 'danger');
+                }
+            } catch (error) {
+                showToast('Error', 'Failed to remove item', 'danger');
+            }
+        }
+
+        function showToast(title, message, type = 'success') {
+            const toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast bg-${type} text-white`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+
+            toast.innerHTML = `
+                <div class="toast-header bg-${type} text-white">
+                    <strong class="me-auto">${title}</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            `;
+
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+    </script>
+}

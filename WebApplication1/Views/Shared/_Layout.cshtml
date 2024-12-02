@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity
 
 <!DOCTYPE html>
 
@@ -29,71 +29,76 @@
 
     <!-- Template Main CSS File -->
     <link href="~/assets/css/style.css" rel="stylesheet">
-
-    <!-- =======================================================
-    * Template Name: Techie - v4.8.1
-    * Template URL: https://bootstrapmade.com/techie-free-skin-bootstrap-3/
-    * Author: BootstrapMade.com
-    * License: https://bootstrapmade.com/license/
-    ======================================================== -->
+    <link href="~/assets/css/custom.css" rel="stylesheet">
 </head>
 
 <body>
 
     <!-- ======= Header ======= -->
-    <header id="header" class="fixed-top ">
+    <header id="header" class="fixed-top">
         <div class="container d-flex align-items-center justify-content-between">
             <h1 class="logo"><a href="/home">TP-TECH</a></h1>
-            <!-- Uncomment below if you prefer to use an image logo -->
-            <!-- <a href="index.html" class="logo"><img src="~/assets/img/logo.png" alt="" class="img-fluid"></a>-->
+
+            <button class="navbar-toggler d-lg-none" type="button">
+                <i class="bi bi-list"></i>
+            </button>
 
             <nav id="navbar" class="navbar">
                 <ul>
-                    <li><a class="nav-link scrollto active" href="/home/index">Home</a></li>
-                    <li><a class="nav-link scrollto" href="/home/privacy">Categories</a></li>
-                    <li><a class="nav-link scrollto" href="/home/Main">products</a></li>
-                    <li><a class="nav-link scrollto " asp-controller="Home" asp-action="Cart">Cart</a></li>
-                    <li><a class="nav-link scrollto" href="#team">Team</a></li>
-                    <li><a class="nav-link scrollto" href="/home/Contact">Contact</a></li>
-
-
-                    @Html.Partial("_Loginpartial")
-
-
+                    <li><a class="nav-link" href="/home/index">Home</a></li>
+                    <li><a class="nav-link" asp-area="" asp-controller="Home" asp-action="Categories">Categories</a></li>
+                    <li><a class="nav-link" asp-area="" asp-controller="Home" asp-action="Products">Products</a></li>
+                    <li class="nav-item">
+                        <form class="d-flex" action="/home/search" method="get">
+                            <div class="input-group">
+                                <input class="form-control" type="search" name="query" placeholder="Search products..." value="@ViewBag.SearchQuery">
+                                <button class="btn btn-outline-primary" type="submit">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </li>
+                    <li>
+                        <a class="nav-link position-relative" asp-controller="Cart" asp-action="Index">
+                            <i class="bi bi-cart3"></i> Cart
+                            @await Component.InvokeAsync("Cart")
+                        </a>
+                    </li>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <li>
+                            <a class="nav-link" asp-area="Identity" asp-page="/Account/Manage/Index">@User.Identity.Name</a>
+                        </li>
+                        <li>
+                            <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                                <button type="submit" class="btn btn-link nav-link">Logout</button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <li>
+                            <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Register</a>
+                        </li>
+                        <li>
+                            <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Login</a>
+                        </li>
+                    }
                 </ul>
-                <i class="bi bi-list mobile-nav-toggle"></i>
-            </nav><!-- .navbar -->
-
+            </nav>
         </div>
     </header><!-- End Header -->
-    <!-- ======= Hero Section ======= -->
-    <section id="hero" class="d-flex align-items-center">
 
-        <div class="container-fluid aos-init aos-animate" data-aos="fade-up">
-            <div class="row justify-content-center">
-                <div class="col-xl-5 col-lg-6 pt-3 pt-lg-0 order-2 order-lg-1 d-flex flex-column justify-content-center">
-                    <h3 style="color:white;">WELCOME </h3>
-                    <h2>Shop through our branches all over Egypt.</h2>
-                    <div><a href="#services" class="btn-get-started scrollto">Get Started</a></div>
-                </div>
-                <div class="col-xl-4 col-lg-6 order-1 order-lg-2 hero-img aos-init aos-animate" data-aos="zoom-in" data-aos-delay="150">
-                    <img src="~/assets/img/portfolio/P2.jpg" style="border-radius: 50px;" class="img-fluid animated" alt="">
-                </div>
-            </div>
-        </div>
-
-    </section>
-
-
-
-
-
-
-
-
-
-
-
+    @{
+        var currentAction = ViewContext?.RouteData?.Values["action"]?.ToString()?.ToLower();
+    }
+    @if (currentAction == "index")
+    {
+        <!-- ======= Hero Section ======= -->
+        <section id="hero" class="d-flex align-items-center">
+            @await Html.PartialAsync("_HeroSection")
+        </section>
+    }
 
     <main id="main">
 
@@ -101,95 +106,15 @@
 
     </main>
 
-
-
-
-
-
-
-
-
-
-
     <!-- ======= Footer ======= -->
     <footer id="footer">
+        <partial name="_Footer" />
+    </footer>
 
-        <div class="footer-top">
-            <div class="container">
-                <div class="row">
-
-                    <div class="col-lg-3 col-md-6 footer-contact">
-                        <h3>Code With Hasn</h3>
-                        <p>
-                            Samannoud City, <br>
-                            Samannoud ,<br>
-                            Gharbia Governorate 6783504 <br><br>
-                            <strong>Phone:</strong> +20 100 9658 621<br>
-                            <strong>Email:</strong> zedanh3@gmail.com<br>
-                        </p>
-                    </div>
-
-                    <div class="col-lg-2 col-md-6 footer-links">
-                        <h4>Useful Links</h4>
-                        <ul>
-                            <li><i class="bx bx-chevron-right"></i> <a href="/home">Home</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="/home/Privecy">Categories</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="/home/Main">Products</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Cart</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="">Team</a></li>
-                        </ul>
-                    </div>
-
-                    <div class="col-lg-3 col-md-6 footer-links">
-                        <h4>Our Services</h4>
-                        <ul>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Web Design</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Web Development</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Product Management</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Marketing</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Graphic Design</a></li>
-                        </ul>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6 footer-newsletter">
-                        <h4>Join Our Newsletter</h4>
-                        <form action="" method="post">
-                            <input type="email" name="email"><input type="submit" value="Subscribe">
-                        </form>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-        <div class="container">
-
-            <div class="copyright-wrap d-md-flex py-4">
-                <div class="me-md-auto text-center text-md-start">
-                    <div class="copyright">
-                        &copy; Copyright <strong><span>Techie</span></strong>. All Rights Reserved
-                    </div>
-                    <div class="credits">
-                        <!-- All the links in the footer should remain intact. -->
-                        <!-- You can delete the links only if you purchased the pro version. -->
-                        <!-- Licensing information: https://bootstrapmade.com/license/ -->
-                        <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/techie-free-skin-bootstrap-3/ -->
-                        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
-                    </div>
-                </div>
-                <div class="social-links text-center text-md-right pt-3 pt-md-0">
-                    <a href="https://twitter.com/_iuys" class="twitter"><i class="bx bxl-twitter"></i></a>
-                    <a href="https://www.facebook.com/hassan.zezo.zedan/" class="facebook"><i class="bx bxl-facebook"></i></a>
-                    <a href="https://www.instagram.com/hssnz_/" class="instagram"><i class="bx bxl-instagram"></i></a>
-                    <a href="#" class="google-plus"><i class="bx bxl-skype"></i></a>
-                    <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
-                </div>
-            </div>
-
-        </div>
-    </footer><!-- End Footer -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 
     <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
     <div id="preloader"></div>
 
     <!-- Vendor JS Files -->
@@ -200,13 +125,37 @@
     <script src="~/assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
     <script src="~/assets/vendor/swiper/swiper-bundle.min.js"></script>
     <script src="~/assets/vendor/php-email-form/validate.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <!-- Template Main JS File -->
     <script src="~/assets/js/main.js"></script>
+    
+    <script>
+        function showToast(title, message, type = 'success') {
+            $('.toast').toast('hide');
+            const toast = $(`
+                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">${title}</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `);
+            $('.toast-container').append(toast);
+            toast.toast('show');
+            setTimeout(() => toast.remove(), 3000);
+        }
 
+        function updateCartCount() {
+            $.get('/home/cartcount', function(count) {
+                $('.cart-badge').text(count);
+            });
+        }
+    </script>
 
-    @RenderSection("Scripts", false)
-
+    @await RenderSectionAsync("Scripts", required: false)
 
 </body>
 

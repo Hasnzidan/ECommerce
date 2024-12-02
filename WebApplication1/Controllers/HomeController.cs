@@ -1,86 +1,164 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using WebApplication1.Models;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace WebApplication1.Controllers
 {
     public class HomeController : Controller
     {
-            SouqcomContext db = new SouqcomContext();
+        private readonly ILogger<HomeController> _logger;
+        private readonly SouqcomContext _context;
+
+        public HomeController(ILogger<HomeController> logger, SouqcomContext context)
+        {
+            _logger = logger;
+            _context = context;
+        }
 
         public IActionResult Index()
         {
-            ViewBag.Reviews = db.Review.ToList();
-            ViewBag.Products = db.Product.ToList();
-            var Cats = db.Category.ToList();
-            return View(Cats);
+            try
+            {
+                var products = _context.Product
+                    .Include(p => p.ProductImages)
+                    .Include(p => p.Category)
+                    .ToList();
+                
+                ViewBag.Categories = _context.Category.ToList();
+                return View(products);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading products");
+                ViewBag.Categories = new List<Category>();
+                return View(new List<Product>());
+            }
+        }
+
+        // GET: /Home/Categories - Shows all categories
+        public IActionResult Categories()
+        {
+            var categories = _context.Category
+                .Include(c => c.Products)
+                .ToList();
+            return View(categories);
+        }
+
+        // GET: /Home/Category/5 - Shows products in a specific category
+        public IActionResult Category(int? categoryId)
+        {
+            IQueryable<Product> query = _context.Product;
+
+            // First include the Category
+            query = query.Include(p => p.Category);
+
+            // Then include the ProductImages collection
+            query = query.Include(p => p.ProductImages);
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == categoryId);
+                var category = _context.Category.FirstOrDefault(c => c.Id == categoryId);
+                if (category != null)
+                {
+                    ViewBag.CategoryName = category.Name;
+                    ViewBag.CategoryDescription = category.Description;
+                }
+            }
+
+            return View(query.ToList());
+        }
+
+        public IActionResult Products(int? categoryId)
+        {
+            IQueryable<Product> products = _context.Product
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages);
+
+            if (categoryId.HasValue)
+            {
+                products = products.Where(p => p.CategoryId == categoryId);
+            }
+
+            return View(products.ToList());
         }
 
         public IActionResult Item(int id)
         {
-            ViewBag.productimages = db.ProductImages.Where(x => x.ProductId == id).ToList();
-            var product = db.Product.Where(x => x.Id == id).ToList();
+            var product = _context.Product
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .FirstOrDefault(p => p.Id == id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
             return View(product);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddToCart(int productId, int quantity)
+        {
+            try
+            {
+                var product = _context.Product.Find(productId);
+                if (product == null)
+                {
+                    return Json(new { success = false, message = "Product not found" });
+                }
+
+                // Here you would add the item to the cart
+                // For now, we'll just return success
+                return Json(new { success = true, cartCount = 1 });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding item to cart");
+                return Json(new { success = false, message = "Error adding item to cart" });
+            }
         }
 
         public IActionResult Contact()
         {
             return View();
         }
-        public IActionResult productserach(string Xname)
-        {
-            var products = db.Product.Where(x => x.Name.Contains(Xname)).ToList();
-            return View("Products",products);
-        }
 
-        [HttpPost]
-            public IActionResult Savereview(Review model)
-        {
-            db.Review.Add(model);
-            db.SaveChanges();
-
-            return RedirectToAction("Index");
-        }
-       
-       [Authorize]
-        public IActionResult Main()
-        {
-
-            ViewBag.Products = db.Product.ToList();
-
-            var cats = db.Category.ToList();
-            return View(cats);
-        }
-
-        public IActionResult Privacy()
-        {
-
-            var Cats = db.Category.ToList();
-            return View(Cats);
-        }
-
-        public IActionResult Products(int id)
-        {
-
-           var products =  db.Product.Where(x=>x.Catid == id) .ToList();
-
-            return View(products);
-        }
-        public IActionResult Cart()
+        public IActionResult About()
         {
             return View();
         }
 
+        public IActionResult Search(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return RedirectToAction(nameof(Products));
+            }
 
+            var products = _context.Product
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Where(p => p.Name.Contains(query) || 
+                           p.Description.Contains(query) || 
+                           p.Category.Name.Contains(query))
+                .ToList();
 
-       
+            ViewBag.SearchQuery = query;
+            return View("Products", products);
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
     }
 }

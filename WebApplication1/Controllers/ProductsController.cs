@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
+using System.IO;
+using Microsoft.AspNetCore.Http;
 
 namespace WebApplication1.Controllers
 {
@@ -21,7 +23,7 @@ namespace WebApplication1.Controllers
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            var souqcomContext = db.Product.Include(p => p.Cat);
+            var souqcomContext = db.Product.Include(p => p.Category);
             return View(await souqcomContext.ToListAsync());
         }
 
@@ -34,7 +36,7 @@ namespace WebApplication1.Controllers
             }
             ViewBag.productimages = db.ProductImages.Where(x => x.ProductId == id).ToList();
             var product = await db.Product
-                .Include(p => p.Cat)
+                .Include(p => p.Category)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (product == null)
             {
@@ -47,7 +49,7 @@ namespace WebApplication1.Controllers
         // GET: Products/Create
         public IActionResult Create()
         {
-            ViewData["Catid"] = new SelectList(db.Category, "Id", "Name");
+            ViewData["CategoryId"] = new SelectList(db.Category, "Id", "Name");
             return View();
         }
 
@@ -56,15 +58,36 @@ namespace WebApplication1.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description,Price,Catid,Photo,Type,SupplierName,EntryDate,ReviewUrl,Quantity,Priceafterdiscount")] Product product)
+        public async Task<IActionResult> Create([Bind("Id,Name,Description,Price,CategoryId,Photo")] Product product, IFormFile Photo)
         {
             if (ModelState.IsValid)
             {
+                product.IsAvailable = Request.Form["IsAvailable"].ToString() == "true";
+                product.CreatedAt = DateTime.Now;
+                
+                if (Photo != null && Photo.Length > 0)
+                {
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + Photo.FileName;
+                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "products");
+                    
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+                    
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await Photo.CopyToAsync(fileStream);
+                    }
+                    product.Photo = Path.Combine("uploads", "products", uniqueFileName).Replace("\\", "/");
+                }
+
                 db.Add(product);
                 await db.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["Catid"] = new SelectList(db.Category, "Id", "Name", product.Catid);
+            ViewData["CategoryId"] = new SelectList(db.Category, "Id", "Name", product.CategoryId);
             return View(product);
         }
 
@@ -81,7 +104,7 @@ namespace WebApplication1.Controllers
             {
                 return NotFound();
             }
-            ViewData["Catid"] = new SelectList(db.Category, "Id", "Name", product.Catid);
+            ViewData["CategoryId"] = new SelectList(db.Category, "Id", "Name", product.CategoryId);
             return View(product);
         }
 
@@ -90,7 +113,7 @@ namespace WebApplication1.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Price,Catid,Photo,Type,SupplierName,EntryDate,ReviewUrl,Quantity,Priceafterdiscount")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Price,CategoryId,Photo,Type,SupplierName,EntryDate,ReviewUrl,Quantity,Priceafterdiscount")] Product product)
         {
             if (id != product.Id)
             {
@@ -117,7 +140,7 @@ namespace WebApplication1.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["Catid"] = new SelectList(db.Category, "Id", "Name", product.Catid);
+            ViewData["CategoryId"] = new SelectList(db.Category, "Id", "Name", product.CategoryId);
             return View(product);
         }
 
@@ -130,7 +153,7 @@ namespace WebApplication1.Controllers
             }
             ViewBag.productimages = db.ProductImages.Where(x => x.ProductId == id).ToList();
             var product = await db.Product
-                .Include(p => p.Cat)
+                .Include(p => p.Category)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (product == null)
             {
