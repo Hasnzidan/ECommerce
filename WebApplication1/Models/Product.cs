@@ -12,7 +12,7 @@ namespace WebApplication1.Models
         public Product()
         {
             Cart = new HashSet<Cart>();
-            ProductImages = new HashSet<ProductImages>();
+            ProductImage = new HashSet<ProductImage>();
         }
 
         public int Id { get; set; }
@@ -29,6 +29,6 @@ namespace WebApplication1.Models
 
         public virtual Category Category { get; set; }
         public virtual ICollection<Cart> Cart { get; set; }
-        public virtual ICollection<ProductImages> ProductImages { get; set; }
+        public virtual ICollection<ProductImage> ProductImage { get; set; }
     }
 }

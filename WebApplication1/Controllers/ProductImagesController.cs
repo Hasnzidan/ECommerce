@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,14 +6,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
+using WebApplication1.Data;
 
 namespace WebApplication1.Controllers
 {
     public class ProductImagesController : Controller
     {
-        private readonly SouqcomContext _context = new SouqcomContext();
+        private readonly Data.SouqcomContext _context;
 
-      
+        public ProductImagesController(Data.SouqcomContext context)
+        {
+            _context = context;
+        }
+
         // GET: ProductImages
         public async Task<IActionResult> Index()
         {
@@ -29,39 +34,37 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var productImages = await _context.ProductImages
+            var productImage = await _context.ProductImages
                 .Include(p => p.Product)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (productImages == null)
+            if (productImage == null)
             {
                 return NotFound();
             }
 
-            return View(productImages);
+            return View(productImage);
         }
 
         // GET: ProductImages/Create
         public IActionResult Create()
         {
-            ViewData["ProductId"] = new SelectList(_context.Product, "Id", "Id");
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name");
             return View();
         }
 
         // POST: ProductImages/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,ProductId,Image")] ProductImages productImages)
+        public async Task<IActionResult> Create([Bind("Id,ProductId,ImagePath,CreatedAt,UpdatedAt")] ProductImage productImage)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(productImages);
+                _context.Add(productImage);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ProductId"] = new SelectList(_context.Product, "Id", "Id", productImages.ProductId);
-            return View(productImages);
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", productImage.ProductId);
+            return View(productImage);
         }
 
         // GET: ProductImages/Edit/5
@@ -72,23 +75,21 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var productImages = await _context.ProductImages.FindAsync(id);
-            if (productImages == null)
+            var productImage = await _context.ProductImages.FindAsync(id);
+            if (productImage == null)
             {
                 return NotFound();
             }
-            ViewData["ProductId"] = new SelectList(_context.Product, "Id", "Id", productImages.ProductId);
-            return View(productImages);
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", productImage.ProductId);
+            return View(productImage);
         }
 
         // POST: ProductImages/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,ProductId,Image")] ProductImages productImages)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,ProductId,ImagePath,CreatedAt,UpdatedAt")] ProductImage productImage)
         {
-            if (id != productImages.Id)
+            if (id != productImage.Id)
             {
                 return NotFound();
             }
@@ -97,12 +98,12 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    _context.Update(productImages);
+                    _context.Update(productImage);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProductImagesExists(productImages.Id))
+                    if (!ProductImageExists(productImage.Id))
                     {
                         return NotFound();
                     }
@@ -113,8 +114,8 @@ namespace WebApplication1.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ProductId"] = new SelectList(_context.Product, "Id", "Id", productImages.ProductId);
-            return View(productImages);
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", productImage.ProductId);
+            return View(productImage);
         }
 
         // GET: ProductImages/Delete/5
@@ -125,15 +126,15 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var productImages = await _context.ProductImages
+            var productImage = await _context.ProductImages
                 .Include(p => p.Product)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (productImages == null)
+            if (productImage == null)
             {
                 return NotFound();
             }
 
-            return View(productImages);
+            return View(productImage);
         }
 
         // POST: ProductImages/Delete/5
@@ -141,13 +142,13 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var productImages = await _context.ProductImages.FindAsync(id);
-            _context.ProductImages.Remove(productImages);
+            var productImage = await _context.ProductImages.FindAsync(id);
+            _context.ProductImages.Remove(productImage);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ProductImagesExists(int id)
+        private bool ProductImageExists(int id)
         {
             return _context.ProductImages.Any(e => e.Id == id);
         }

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace WebApplication1.Models
 {
-    public partial class ProductImages
+    public partial class ProductImage
     {
         public int Id { get; set; }
         public int? ProductId { get; set; }

@@ -16,6 +16,9 @@ using WebApplication1.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
+using SixLabors.ImageSharp.Web.DependencyInjection;
+using WebApplication1.Middleware;
+using WebApplication1.Data; // Added this line
 
 namespace WebApplication1
 {
@@ -33,6 +36,8 @@ namespace WebApplication1
         {
             services.AddControllersWithViews();
             services.AddRazorPages();
+
+            services.AddImageSharp();
 
             services.AddDbContext<SouqcomContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
@@ -86,6 +91,10 @@ namespace WebApplication1
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            
+            // Configure ImageSharp before the ImageOptimizationMiddleware
+            app.UseImageSharp();
+            app.UseMiddleware<ImageOptimizationMiddleware>();
 
             app.UseRouting();
 

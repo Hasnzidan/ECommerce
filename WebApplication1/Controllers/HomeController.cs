@@ -1,11 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using WebApplication1.Models;
-using System.Linq;
+using WebApplication1.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 
 namespace WebApplication1.Controllers
 {
@@ -24,12 +26,12 @@ namespace WebApplication1.Controllers
         {
             try
             {
-                var products = _context.Product
-                    .Include(p => p.ProductImages)
+                var products = _context.Products
+                    .Include(p => p.ProductImage)
                     .Include(p => p.Category)
                     .ToList();
                 
-                ViewBag.Categories = _context.Category.ToList();
+                ViewBag.Categories = _context.Categories.ToList();
                 return View(products);
             }
             catch (Exception ex)
@@ -43,7 +45,7 @@ namespace WebApplication1.Controllers
         // GET: /Home/Categories - Shows all categories
         public IActionResult Categories()
         {
-            var categories = _context.Category
+            var categories = _context.Categories
                 .Include(c => c.Products)
                 .ToList();
             return View(categories);
@@ -52,18 +54,18 @@ namespace WebApplication1.Controllers
         // GET: /Home/Category/5 - Shows products in a specific category
         public IActionResult Category(int? categoryId)
         {
-            IQueryable<Product> query = _context.Product;
+            IQueryable<Product> query = _context.Products;
 
             // First include the Category
             query = query.Include(p => p.Category);
 
-            // Then include the ProductImages collection
-            query = query.Include(p => p.ProductImages);
+            // Then include the ProductImage collection
+            query = query.Include(p => p.ProductImage);
 
             if (categoryId.HasValue)
             {
                 query = query.Where(p => p.CategoryId == categoryId);
-                var category = _context.Category.FirstOrDefault(c => c.Id == categoryId);
+                var category = _context.Categories.FirstOrDefault(c => c.Id == categoryId);
                 if (category != null)
                 {
                     ViewBag.CategoryName = category.Name;
@@ -76,9 +78,9 @@ namespace WebApplication1.Controllers
 
         public IActionResult Products(int? categoryId)
         {
-            IQueryable<Product> products = _context.Product
+            IQueryable<Product> products = _context.Products
                 .Include(p => p.Category)
-                .Include(p => p.ProductImages);
+                .Include(p => p.ProductImage);
 
             if (categoryId.HasValue)
             {
@@ -90,9 +92,9 @@ namespace WebApplication1.Controllers
 
         public IActionResult Item(int id)
         {
-            var product = _context.Product
+            var product = _context.Products
                 .Include(p => p.Category)
-                .Include(p => p.ProductImages)
+                .Include(p => p.ProductImage)
                 .FirstOrDefault(p => p.Id == id);
 
             if (product == null)
@@ -109,7 +111,7 @@ namespace WebApplication1.Controllers
         {
             try
             {
-                var product = _context.Product.Find(productId);
+                var product = _context.Products.Find(productId);
                 if (product == null)
                 {
                     return Json(new { success = false, message = "Product not found" });
@@ -143,9 +145,9 @@ namespace WebApplication1.Controllers
                 return RedirectToAction(nameof(Products));
             }
 
-            var products = _context.Product
+            var products = _context.Products
                 .Include(p => p.Category)
-                .Include(p => p.ProductImages)
+                .Include(p => p.ProductImage)
                 .Where(p => p.Name.Contains(query) || 
                            p.Description.Contains(query) || 
                            p.Category.Name.Contains(query))

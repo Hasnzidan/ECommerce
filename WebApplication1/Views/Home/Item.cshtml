@@ -40,11 +40,11 @@
                             }
                         </div>
                         
-                        @if (Model.ProductImages != null && Model.ProductImages.Any())
+                        @if (Model.ProductImage != null && Model.ProductImage.Any())
                         {
                             <div class="thumbnails mt-3">
                                 <div class="row g-2">
-                                    @foreach (var image in Model.ProductImages)
+                                    @foreach (var image in Model.ProductImage)
                                     {
                                         <div class="col-3">
                                             <img src="/@image.ImagePath" alt="@Model.Name" class="img-fluid thumbnail">

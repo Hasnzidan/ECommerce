@@ -1,30 +1,42 @@
-﻿@model WebApplication1.Models.ProductImages
+@model WebApplication1.Models.ProductImage
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Product Image Details";
 }
 
-<h1>Details</h1>
+<h1>Product Image Details</h1>
 
 <div>
-    <h4>ProductImages</h4>
+    <h4>Product Image</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
-            Image Path
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ImagePath)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.ImagePath)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.CreatedAt)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.CreatedAt)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.UpdatedAt)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.UpdatedAt)
+        </dd>
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Product)
         </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Product.Id)
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Product.Name)
         </dd>
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a> |
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>

@@ -1,0 +1,108 @@
+@model IEnumerable<WebApplication1.Models.Product>
+
+<div class="container mt-4">
+    <h2>Product Comparison</h2>
+
+    <div class="table-responsive">
+        <table class="table table-bordered comparison-table">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    @foreach (var product in Model)
+                    {
+                        <th>
+                            <div class="text-center">
+                                <img src="../../@product.Photo" alt="@product.Name" 
+                                     class="img-fluid mb-2" style="max-height: 150px; object-fit: contain;">
+                                <h5>@product.Name</h5>
+                            </div>
+                        </th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Price</strong></td>
+                    @foreach (var product in Model)
+                    {
+                        <td class="text-center">
+                            <div class="price-block">
+                                <span class="current-price h5">@product.Price?.ToString("N0") LE</span>
+                                @if (product.OldPrice.HasValue && product.OldPrice > product.Price)
+                                {
+                                    <br/>
+                                    <span class="old-price text-muted text-decoration-line-through">
+                                        @product.OldPrice?.ToString("N0") LE
+                                    </span>
+                                }
+                            </div>
+                        </td>
+                    }
+                </tr>
+                <tr>
+                    <td><strong>Category</strong></td>
+                    @foreach (var product in Model)
+                    {
+                        <td class="text-center">@product.Category?.Name</td>
+                    }
+                </tr>
+                <tr>
+                    <td><strong>Availability</strong></td>
+                    @foreach (var product in Model)
+                    {
+                        <td class="text-center">
+                            @if (product.IsAvailable)
+                            {
+                                <span class="badge bg-success">In Stock</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Out of Stock</span>
+                            }
+                        </td>
+                    }
+                </tr>
+                <tr>
+                    <td><strong>Description</strong></td>
+                    @foreach (var product in Model)
+                    {
+                        <td>@product.Description</td>
+                    }
+                </tr>
+                <tr>
+                    <td><strong>Actions</strong></td>
+                    @foreach (var product in Model)
+                    {
+                        <td class="text-center">
+                            <div class="btn-group-vertical">
+                                <button class="btn btn-primary mb-2" onclick="addToCart(@product.Id)">
+                                    <i class="bi bi-cart-plus"></i> Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="toggleWishlist(@product.Id)">
+                                    <i class="bi bi-heart"></i> Add to Wishlist
+                                </button>
+                            </div>
+                        </td>
+                    }
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Products
+        </a>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .comparison-table th {
+            min-width: 200px;
+        }
+        .comparison-table td {
+            vertical-align: middle;
+        }
+    </style>
+}

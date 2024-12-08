@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using WebApplication1.Data;
 using WebApplication1.Models;
-using Microsoft.AspNetCore.Identity;
 
 namespace WebApplication1.Controllers
 {
@@ -29,7 +30,7 @@ namespace WebApplication1.Controllers
         public IActionResult Index()
         {
             var userId = GetUserId();
-            var cartItems = db.Cart
+            var cartItems = db.Carts
                 .Where(c => c.UserId == userId)
                 .Include(c => c.Product)
                 .ToList();
@@ -43,7 +44,7 @@ namespace WebApplication1.Controllers
             try
             {
                 var userId = GetUserId();
-                var cartItem = db.Cart.FirstOrDefault(c => c.Id == cartId && c.UserId == userId);
+                var cartItem = db.Carts.FirstOrDefault(c => c.Id == cartId && c.UserId == userId);
 
                 if (cartItem == null)
                 {
@@ -53,12 +54,12 @@ namespace WebApplication1.Controllers
                 var newQuantity = (cartItem.Qty ?? 0) + change;
                 if (newQuantity <= 0)
                 {
-                    db.Cart.Remove(cartItem);
+                    db.Carts.Remove(cartItem);
                 }
                 else
                 {
                     cartItem.Qty = newQuantity;
-                    db.Cart.Update(cartItem);
+                    db.Carts.Update(cartItem);
                 }
 
                 db.SaveChanges();
@@ -77,12 +78,12 @@ namespace WebApplication1.Controllers
             try
             {
                 var userId = GetUserId();
-                var existingItem = db.Cart.FirstOrDefault(c => c.UserId == userId && c.ProductId == productId);
+                var existingItem = db.Carts.FirstOrDefault(c => c.UserId == userId && c.ProductId == productId);
 
                 if (existingItem != null)
                 {
                     existingItem.Qty = (existingItem.Qty ?? 0) + quantity;
-                    db.Cart.Update(existingItem);
+                    db.Carts.Update(existingItem);
                 }
                 else
                 {
@@ -92,7 +93,7 @@ namespace WebApplication1.Controllers
                         ProductId = productId,
                         Qty = quantity
                     };
-                    db.Cart.Add(cartItem);
+                    db.Carts.Add(cartItem);
                 }
 
                 db.SaveChanges();
@@ -111,14 +112,14 @@ namespace WebApplication1.Controllers
             try
             {
                 var userId = GetUserId();
-                var cartItem = db.Cart.FirstOrDefault(c => c.Id == cartId && c.UserId == userId);
+                var cartItem = db.Carts.FirstOrDefault(c => c.Id == cartId && c.UserId == userId);
 
                 if (cartItem == null)
                 {
                     return Json(new { success = false, message = "Cart item not found" });
                 }
 
-                db.Cart.Remove(cartItem);
+                db.Carts.Remove(cartItem);
                 db.SaveChanges();
 
                 return Json(new { success = true });

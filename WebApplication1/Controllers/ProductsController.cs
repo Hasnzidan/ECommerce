@@ -8,22 +8,25 @@ using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 using System.IO;
 using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using WebApplication1.Data;
 
 namespace WebApplication1.Controllers
 {
     public class ProductsController : Controller
     {
-        private readonly SouqcomContext db = new SouqcomContext();
+        private readonly WebApplication1.Data.SouqcomContext db;
 
-      /* public ProductsController(SouqcomContext context)
+        public ProductsController(WebApplication1.Data.SouqcomContext context)
         {
             db = context;
-        }*/
+        }
 
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            var souqcomContext = db.Product.Include(p => p.Category);
+            var souqcomContext = db.Products.Include(p => p.Category);
             return View(await souqcomContext.ToListAsync());
         }
 
@@ -35,7 +38,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
             ViewBag.productimages = db.ProductImages.Where(x => x.ProductId == id).ToList();
-            var product = await db.Product
+            var product = await db.Products
                 .Include(p => p.Category)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (product == null)
@@ -49,7 +52,7 @@ namespace WebApplication1.Controllers
         // GET: Products/Create
         public IActionResult Create()
         {
-            ViewData["CategoryId"] = new SelectList(db.Category, "Id", "Name");
+            ViewData["CategoryId"] = new SelectList(db.Categories, "Id", "Name");
             return View();
         }
 
@@ -83,11 +86,11 @@ namespace WebApplication1.Controllers
                     product.Photo = Path.Combine("uploads", "products", uniqueFileName).Replace("\\", "/");
                 }
 
-                db.Add(product);
+                db.Products.Add(product);
                 await db.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryId"] = new SelectList(db.Category, "Id", "Name", product.CategoryId);
+            ViewData["CategoryId"] = new SelectList(db.Categories, "Id", "Name", product.CategoryId);
             return View(product);
         }
 
@@ -99,12 +102,12 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var product = await db.Product.FindAsync(id);
+            var product = await db.Products.FindAsync(id);
             if (product == null)
             {
                 return NotFound();
             }
-            ViewData["CategoryId"] = new SelectList(db.Category, "Id", "Name", product.CategoryId);
+            ViewData["CategoryId"] = new SelectList(db.Categories, "Id", "Name", product.CategoryId);
             return View(product);
         }
 
@@ -140,7 +143,7 @@ namespace WebApplication1.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryId"] = new SelectList(db.Category, "Id", "Name", product.CategoryId);
+            ViewData["CategoryId"] = new SelectList(db.Categories, "Id", "Name", product.CategoryId);
             return View(product);
         }
 
@@ -152,7 +155,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
             ViewBag.productimages = db.ProductImages.Where(x => x.ProductId == id).ToList();
-            var product = await db.Product
+            var product = await db.Products
                 .Include(p => p.Category)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (product == null)
@@ -168,15 +171,89 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await db.Product.FindAsync(id);
-            db.Product.Remove(product);
+            var product = await db.Products.FindAsync(id);
+            db.Products.Remove(product);
             await db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool ProductExists(int id)
         {
-            return db.Product.Any(e => e.Id == id);
+            return db.Products.Any(e => e.Id == id);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> AddToCart(int productId, int quantity = 1)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { success = false, message = "Please login to add items to cart" });
+                }
+
+                var product = await db.Products.FindAsync(productId);
+                if (product == null)
+                {
+                    return Json(new { success = false, message = "Product not found" });
+                }
+
+                var cartItem = await db.Carts
+                    .FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == productId);
+
+                if (cartItem == null)
+                {
+                    cartItem = new Cart
+                    {
+                        UserId = userId,
+                        ProductId = productId,
+                        Qty = quantity
+                    };
+                    db.Carts.Add(cartItem);
+                }
+                else
+                {
+                    cartItem.Qty = (cartItem.Qty ?? 0) + quantity;
+                    db.Carts.Update(cartItem);
+                }
+
+                await db.SaveChangesAsync();
+
+                var cartCount = await db.Carts
+                    .Where(c => c.UserId == userId)
+                    .SumAsync(c => c.Qty ?? 0);
+
+                return Json(new { success = true, message = "Item added to cart", cartCount });
+            }
+            catch (Exception)
+            {
+                return Json(new { success = false, message = "Error adding item to cart" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCartCount()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { success = true, count = 0 });
+                }
+
+                var count = await db.Carts
+                    .Where(c => c.UserId == userId)
+                    .SumAsync(c => c.Qty ?? 0);
+
+                return Json(new { success = true, count });
+            }
+            catch (Exception)
+            {
+                return Json(new { success = false, count = 0 });
+            }
         }
     }
 }

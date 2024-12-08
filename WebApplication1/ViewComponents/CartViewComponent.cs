@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 using WebApplication1.Models;
+using WebApplication1.Data;
 using System.Security.Claims;
 
 namespace WebApplication1.ViewComponents
@@ -25,14 +26,11 @@ namespace WebApplication1.ViewComponents
             
             if (UserClaimsPrincipal?.Identity?.IsAuthenticated == true)
             {
-                var userId = _userManager.GetUserId((ClaimsPrincipal)UserClaimsPrincipal);
-                if (!string.IsNullOrEmpty(userId))
-                {
-                    cartCount = await _context.Cart
-                        .Where(c => c.UserId == userId)
-                        .Select(c => c.Qty ?? 0)
-                        .SumAsync();
-                }
+                var userId = _userManager.GetUserId(HttpContext.User);
+                var cartItems = await _context.Carts
+                    .Where(c => c.UserId == userId)
+                    .ToListAsync();
+                cartCount = cartItems.Sum(c => c.Qty ?? 0);
             }
             
             return View(cartCount);
