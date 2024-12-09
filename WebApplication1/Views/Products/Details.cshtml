@@ -9,7 +9,7 @@
     <div class="row">
         <div class="col-md-6">
             <div class="portfolio-wrap">
-                <img src="../../@Model.Photo" class="img-fluid" alt="@Model.Name" />
+                <img src="~/@Model.Photo" class="img-fluid" alt="@Model.Name" />
             </div>
             @if (ViewBag.productimages != null && ((List<ProductImage>)ViewBag.productimages).Any())
             {
@@ -18,7 +18,7 @@
                         @foreach (var image in (List<ProductImage>)ViewBag.productimages)
                         {
                             <div class="col-3 mb-3">
-                                <img src="../../@image.ImagePath" class="img-fluid thumbnail" alt="Product Image" />
+                                <img src="~/@image.ImagePath" class="img-fluid thumbnail" alt="Product Image" />
                             </div>
                         }
                     </div>

@@ -30,7 +30,7 @@ namespace WebApplication1.ViewComponents
                 var cartItems = await _context.Carts
                     .Where(c => c.UserId == userId)
                     .ToListAsync();
-                cartCount = cartItems.Sum(c => c.Qty ?? 0);
+                cartCount = cartItems.Sum(c => c.Qty); // Removed null-conditional operator
             }
             
             return View(cartCount);

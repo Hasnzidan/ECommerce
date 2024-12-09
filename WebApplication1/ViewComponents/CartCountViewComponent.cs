@@ -19,17 +19,16 @@ namespace WebApplication1.ViewComponents
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var userId = UserClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
+            var cartCount = 0;
+            var userId = UserClaimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(userId))
             {
-                return Content("0");
+                cartCount = await _context.Carts
+                    .Where(c => c.UserId == userId)
+                    .SumAsync(c => c.Qty);
             }
-
-            var count = await _context.Carts
-                .Where(c => c.UserId == userId)
-                .SumAsync(c => c.Qty ?? 0);
-
-            return Content(count.ToString());
+            
+            return View(cartCount);
         }
     }
 }

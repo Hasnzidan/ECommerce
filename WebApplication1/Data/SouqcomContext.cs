@@ -21,6 +21,27 @@ namespace WebApplication1.Data
         {
             base.OnModelCreating(builder);
 
+            // Configure Cart entity
+            builder.Entity<Cart>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                
+                entity.Property(e => e.UserId)
+                    .IsRequired();
+
+                entity.Property(e => e.ProductId)
+                    .IsRequired();
+
+                entity.Property(e => e.Qty)
+                    .IsRequired()
+                    .HasDefaultValue(1);
+
+                entity.HasOne(d => d.Product)
+                    .WithMany(p => p.Cart)
+                    .HasForeignKey(d => d.ProductId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             // Seed Categories
             builder.Entity<Category>().HasData(
                 new Category { Id = 1, Name = "Electronics", Description = "Electronic devices and accessories" },

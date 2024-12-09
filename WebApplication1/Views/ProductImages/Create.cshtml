@@ -4,34 +4,40 @@
     ViewData["Title"] = "Create Product Image";
 }
 
+<link rel="stylesheet" href="~/css/imageUpload.css" />
+
 <h1>Create Product Image</h1>
 
-<h4>ProductImage</h4>
-<hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create" enctype="multipart/form-data">
+    <div class="col-md-8">
+        <form asp-action="Create" enctype="multipart/form-data" id="uploadForm">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            
             <div class="form-group">
                 <label asp-for="ProductId" class="control-label"></label>
                 <select asp-for="ProductId" class="form-control" asp-items="ViewBag.ProductId"></select>
             </div>
-            <div class="form-group">
-                <label asp-for="ImagePath" class="control-label">Image Path</label>
-                <input asp-for="ImagePath" class="form-control" />
-                <span asp-validation-for="ImagePath" class="text-danger"></span>
+
+            <div class="upload-container">
+                <input type="file" name="files" id="file-input" class="file-input" multiple accept="image/jpeg,image/png,image/gif" />
+                <div id="drop-zone" class="drop-zone" onclick="document.getElementById('file-input').click()">
+                    <p class="drop-zone-text">
+                        Drag and drop images here or click to select files<br>
+                        <small>(JPEG, PNG, GIF up to 5MB)</small>
+                    </p>
+                </div>
+                <div id="preview-container" class="preview-container"></div>
             </div>
+
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Upload Images" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="~/js/imageUpload.js"></script>
 }

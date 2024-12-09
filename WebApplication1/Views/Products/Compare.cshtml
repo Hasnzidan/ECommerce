@@ -27,7 +27,9 @@
                     {
                         <td class="text-center">
                             <div class="price-block">
-                                <span class="current-price h5">@product.Price?.ToString("N0") LE</span>
+                                <div class="price">
+                                    <span>@product.Price.ToString("C")</span>
+                                </div>
                                 @if (product.OldPrice.HasValue && product.OldPrice > product.Price)
                                 {
                                     <br/>

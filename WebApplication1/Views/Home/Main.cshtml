@@ -115,12 +115,8 @@
                             <div class="product-info">
                                 <h4><a href="@Url.Action("Item", "Home", new { id = product.Id })">@product.Name</a></h4>
                                 <p class="description">@(string.IsNullOrEmpty(product.Description) ? "No description available" : product.Description)</p>
-                                <div class="price-container">
-                                    @if (product.OldPrice.HasValue && product.OldPrice > product.Price)
-                                    {
-                                        <span class="old-price">$@product.OldPrice?.ToString("0.00")</span>
-                                    }
-                                    <span class="current-price">$@product.Price?.ToString("0.00")</span>
+                                <div class="product-price">
+                                    <span class="price">@product.Price.ToString("C")</span>
                                 </div>
                                 <div class="product-actions">
                                     @Html.AntiForgeryToken()
@@ -186,11 +182,14 @@
             $.ajax({
                 url: '/Cart/AddToCart',
                 type: 'POST',
-                data: {
-                    productId: productId,
-                    quantity: quantity,
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                contentType: 'application/json',
+                headers: {
+                    'RequestVerificationToken': '@token'
                 },
+                data: JSON.stringify({
+                    productId: productId,
+                    quantity: quantity
+                }),
                 success: function(response) {
                     if (response.success) {
                         updateCartCount();

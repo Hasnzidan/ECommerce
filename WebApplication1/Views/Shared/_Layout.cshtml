@@ -33,13 +33,14 @@
     <link href="~/assets/css/custom.css" rel="stylesheet">
     <link href="~/css/site.css" rel="stylesheet" />
     <link href="~/css/cart.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
 </head>
 
 <body>
     @Html.AntiForgeryToken()
 
     <!-- ======= Header ======= -->
-    <header id="header" class="fixed-top">
+    <header id="header" class="fixed-top"style="background-color: #553ded;">
         <div class="container d-flex align-items-center justify-content-between">
             <h1 class="logo"><a href="/home">TP-TECH</a></h1>
 
@@ -98,13 +99,7 @@
     @{
         var currentAction = ViewContext?.RouteData?.Values["action"]?.ToString()?.ToLower();
     }
-    @if (currentAction == "index")
-    {
-        <!-- ======= Hero Section ======= -->
-        <section id="hero" class="d-flex align-items-center">
-            @await Html.PartialAsync("_HeroSection")
-        </section>
-    }
+   
 
     <main id="main">
 

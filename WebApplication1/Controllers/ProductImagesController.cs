@@ -7,9 +7,13 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 using WebApplication1.Data;
+using System.IO;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebApplication1.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class ProductImagesController : Controller
     {
         private readonly Data.SouqcomContext _context;
@@ -55,14 +59,65 @@ namespace WebApplication1.Controllers
         // POST: ProductImages/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,ProductId,ImagePath,CreatedAt,UpdatedAt")] ProductImage productImage)
+        public async Task<IActionResult> Create([Bind("ProductId")] ProductImage productImage, List<IFormFile> files)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(productImage);
+                if (files == null || !files.Any())
+                {
+                    ModelState.AddModelError("", "Please select at least one image file.");
+                    ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", productImage.ProductId);
+                    return View(productImage);
+                }
+
+                var uploadPath = Path.Combine("wwwroot", "uploads", "products");
+                Directory.CreateDirectory(uploadPath);
+
+                foreach (var file in files)
+                {
+                    if (file.Length > 0)
+                    {
+                        // Validate file type
+                        var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif" };
+                        if (!allowedTypes.Contains(file.ContentType.ToLower()))
+                        {
+                            ModelState.AddModelError("", $"File {file.FileName} is not a valid image type.");
+                            continue;
+                        }
+
+                        // Validate file size (5MB max)
+                        if (file.Length > 5 * 1024 * 1024)
+                        {
+                            ModelState.AddModelError("", $"File {file.FileName} exceeds the maximum size of 5MB.");
+                            continue;
+                        }
+
+                        // Generate unique filename
+                        var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+                        var filePath = Path.Combine(uploadPath, fileName);
+
+                        // Create new product image entry
+                        var newProductImage = new ProductImage
+                        {
+                            ProductId = productImage.ProductId,
+                            ImagePath = $"uploads/products/{fileName}",
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        };
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+
+                        _context.Add(newProductImage);
+                    }
+                }
+
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
             ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", productImage.ProductId);
             return View(productImage);
         }

@@ -14,6 +14,7 @@ using WebApplication1.Data;
 
 namespace WebApplication1.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class ProductsController : Controller
     {
         private readonly WebApplication1.Data.SouqcomContext db;
@@ -116,7 +117,7 @@ namespace WebApplication1.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Price,CategoryId,Photo,Type,SupplierName,EntryDate,ReviewUrl,Quantity,Priceafterdiscount")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Price,CategoryId,Photo,IsAvailable")] Product product, IFormFile Photo)
         {
             if (id != product.Id)
             {
@@ -127,6 +128,47 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
+                    var existingProduct = await db.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
+                    if (existingProduct == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Keep the existing photo if no new photo is uploaded
+                    if (Photo == null)
+                    {
+                        product.Photo = existingProduct.Photo;
+                    }
+                    else if (Photo.Length > 0)
+                    {
+                        // Delete old photo if it exists
+                        if (!string.IsNullOrEmpty(existingProduct.Photo))
+                        {
+                            var oldPhotoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", existingProduct.Photo);
+                            if (System.IO.File.Exists(oldPhotoPath))
+                            {
+                                System.IO.File.Delete(oldPhotoPath);
+                            }
+                        }
+
+                        // Save new photo
+                        string uniqueFileName = Guid.NewGuid().ToString() + "_" + Photo.FileName;
+                        string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "products");
+                        
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+                        
+                        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await Photo.CopyToAsync(fileStream);
+                        }
+                        product.Photo = Path.Combine("uploads", "products", uniqueFileName).Replace("\\", "/");
+                    }
+
+                    product.IsAvailable = Request.Form["IsAvailable"].ToString() == "true";
                     db.Update(product);
                     await db.SaveChangesAsync();
                 }
@@ -203,7 +245,12 @@ namespace WebApplication1.Controllers
                 var cartItem = await db.Carts
                     .FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == productId);
 
-                if (cartItem == null)
+                if (cartItem != null)
+                {
+                    cartItem.Qty = quantity;
+                    db.Carts.Update(cartItem);
+                }
+                else
                 {
                     cartItem = new Cart
                     {
@@ -213,17 +260,12 @@ namespace WebApplication1.Controllers
                     };
                     db.Carts.Add(cartItem);
                 }
-                else
-                {
-                    cartItem.Qty = (cartItem.Qty ?? 0) + quantity;
-                    db.Carts.Update(cartItem);
-                }
 
                 await db.SaveChangesAsync();
 
                 var cartCount = await db.Carts
                     .Where(c => c.UserId == userId)
-                    .SumAsync(c => c.Qty ?? 0);
+                    .SumAsync(c => c.Qty);
 
                 return Json(new { success = true, message = "Item added to cart", cartCount });
             }
@@ -246,7 +288,7 @@ namespace WebApplication1.Controllers
 
                 var count = await db.Carts
                     .Where(c => c.UserId == userId)
-                    .SumAsync(c => c.Qty ?? 0);
+                    .SumAsync(c => c.Qty);
 
                 return Json(new { success = true, count });
             }

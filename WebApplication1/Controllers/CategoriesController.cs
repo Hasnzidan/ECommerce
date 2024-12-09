@@ -9,9 +9,11 @@ using WebApplication1.Models;
 using System.IO;
 using Microsoft.AspNetCore.Http;
 using WebApplication1.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebApplication1.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class CategoriesController : Controller
     {
         private readonly SouqcomContext _context;

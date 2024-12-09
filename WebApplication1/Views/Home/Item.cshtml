@@ -5,49 +5,54 @@
     var token = Antiforgery.GetAndStoreTokens(Context).RequestToken;
 }
 
+<input type="hidden" id="antiforgeryToken" value="@token" />
+
 <main id="main">
     <!-- ======= Breadcrumbs ======= -->
-    <section id="breadcrumbs" class="breadcrumbs">
+    <section class="breadcrumb-section">
         <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2>@Model.Name</h2>
-                <ol>
-                    <li><a href="@Url.Action("Index", "Home")">Home</a></li>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
                     @if (Model.Category != null)
                     {
-                        <li><a href="@Url.Action("Category", "Home", new { categoryId = Model.Category.Id })">@Model.Category.Name</a></li>
+                        <li class="breadcrumb-item">
+                            <a href="@Url.Action("Category", "Home", new { categoryId = Model.Category.Id })">@Model.Category.Name</a>
+                        </li>
                     }
-                    <li>@Model.Name</li>
+                    <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
                 </ol>
-            </div>
+            </nav>
         </div>
     </section>
 
     <!-- ======= Product Details Section ======= -->
-    <section id="product-details" class="product-details">
+    <section class="product-details-section py-5">
         <div class="container">
-            <div class="row gy-4">
+            <div class="row g-4">
+                <!-- Product Gallery -->
                 <div class="col-lg-6">
-                    <div class="product-gallery">
-                        <div class="main-image">
+                    <div class="product-gallery card shadow-sm">
+                        <div class="main-image p-3">
                             @if (!string.IsNullOrEmpty(Model.Photo))
                             {
-                                <img src="/@Model.Photo" alt="@Model.Name" class="img-fluid">
+                                <img src="/@Model.Photo" alt="@Model.Name" class="img-fluid rounded main-product-image">
                             }
                             else
                             {
-                                <img src="/images/default-product.jpg" alt="@Model.Name" class="img-fluid">
+                                <img src="/images/default-product.jpg" alt="@Model.Name" class="img-fluid rounded main-product-image">
                             }
                         </div>
                         
                         @if (Model.ProductImage != null && Model.ProductImage.Any())
                         {
-                            <div class="thumbnails mt-3">
+                            <div class="thumbnails p-3 pt-0">
                                 <div class="row g-2">
                                     @foreach (var image in Model.ProductImage)
                                     {
                                         <div class="col-3">
-                                            <img src="/@image.ImagePath" alt="@Model.Name" class="img-fluid thumbnail">
+                                            <img src="/@image.ImagePath" alt="@Model.Name" class="img-fluid rounded thumbnail"
+                                                 onclick="updateMainImage(this.src)">
                                         </div>
                                     }
                                 </div>
@@ -56,52 +61,103 @@
                     </div>
                 </div>
 
+                <!-- Product Info -->
                 <div class="col-lg-6">
                     <div class="product-info">
-                        <h1 class="product-title">@Model.Name</h1>
-                        
-                        <div class="product-price mb-4">
-                            @if (Model.OldPrice.HasValue && Model.OldPrice > Model.Price)
-                            {
-                                <span class="old-price">$@Model.OldPrice?.ToString("0.00")</span>
-                                <span class="discount-badge">
-                                    @{
-                                        var discountPercentage = ((Model.OldPrice - Model.Price) / Model.OldPrice * 100)?.ToString("0");
-                                    }
-                                    -@discountPercentage%
-                                </span>
-                            }
-                            <span class="current-price">$@Model.Price?.ToString("0.00")</span>
-                        </div>
-
-                        <div class="product-description mb-4">
-                            <h4>Description</h4>
-                            <p>@(string.IsNullOrEmpty(Model.Description) ? "No description available" : Model.Description)</p>
-                        </div>
-
-                        <div class="product-meta mb-4">
-                            @if (Model.Category != null)
-                            {
-                                <div class="category">
-                                    <strong>Category:</strong>
-                                    <a href="@Url.Action("Category", "Home", new { categoryId = Model.Category.Id })">@Model.Category.Name</a>
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h1 class="product-title mb-3">@Model.Name</h1>
+                                
+                                <div class="product-price mb-4">
+                                    <span class="price">@Model.Price.ToString("C")</span>
                                 </div>
-                            }
-                        </div>
 
-                        <div class="product-actions">
-                            <div class="quantity-selector mb-3">
-                                <label for="quantity">Quantity:</label>
-                                <div class="input-group" style="width: 130px;">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(-1)">-</button>
-                                    <input type="number" class="form-control text-center" id="quantity" value="1" min="1">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(1)">+</button>
+                                <div class="product-meta mb-4">
+                                    @if (Model.Category != null)
+                                    {
+                                        <div class="category d-flex align-items-center mb-2">
+                                            <i class="bi bi-tag me-2"></i>
+                                            <span class="text-muted">Category:</span>
+                                            <a href="@Url.Action("Category", "Home", new { categoryId = Model.Category.Id })" 
+                                               class="ms-2">@Model.Category.Name</a>
+                                        </div>
+                                    }
+                                    <div class="sku d-flex align-items-center">
+                                        <i class="bi bi-upc me-2"></i>
+                                        <span class="text-muted">SKU:</span>
+                                        <span class="ms-2">@Model.Id</span>
+                                    </div>
+                                </div>
+
+                                <div class="product-description mb-4">
+                                    <h5 class="description-title mb-3">
+                                        <i class="bi bi-info-circle me-2"></i>Description
+                                    </h5>
+                                    <div class="description-content">
+                                        @if (!string.IsNullOrEmpty(Model.Description))
+                                        {
+                                            <p class="mb-0">@Model.Description</p>
+                                        }
+                                        else
+                                        {
+                                            <p class="text-muted mb-0">No description available</p>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="product-actions">
+                                    @if (User.Identity.IsAuthenticated)
+                                    {
+                                        <div class="quantity-selector mb-3">
+                                            <label for="quantity" class="form-label">Quantity:</label>
+                                            <div class="input-group" style="width: 140px;">
+                                                <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(-1)">
+                                                    <i class="bi bi-dash"></i>
+                                                </button>
+                                                <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="99">
+                                                <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(1)">
+                                                    <i class="bi bi-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <button class="btn btn-primary btn-lg w-100 add-to-cart" onclick="addToCart(@Model.Id)">
+                                            <i class="bi bi-cart-plus me-2"></i>Add to Cart
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Action("Login", "Identity/Account")" class="btn btn-primary btn-lg w-100">
+                                            <i class="bi bi-box-arrow-in-right me-2"></i>Login to Add to Cart
+                                        </a>
+                                    }
                                 </div>
                             </div>
+                        </div>
 
-                            <button class="btn btn-primary btn-lg add-to-cart" onclick="addToCart(@Model.Id, $('#quantity').val())">
-                                <i class="bi bi-cart-plus"></i> Add to Cart
-                            </button>
+                        <!-- Additional Info Cards -->
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="card shadow-sm text-center p-3">
+                                    <i class="bi bi-truck fs-3 mb-2 text-primary"></i>
+                                    <h6 class="mb-1">Free Shipping</h6>
+                                    <small class="text-muted">On orders over $50</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card shadow-sm text-center p-3">
+                                    <i class="bi bi-shield-check fs-3 mb-2 text-primary"></i>
+                                    <h6 class="mb-1">Secure Payment</h6>
+                                    <small class="text-muted">100% secure payment</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card shadow-sm text-center p-3">
+                                    <i class="bi bi-arrow-counterclockwise fs-3 mb-2 text-primary"></i>
+                                    <h6 class="mb-1">Easy Returns</h6>
+                                    <small class="text-muted">30 day returns</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -110,119 +166,94 @@
     </section>
 </main>
 
-<!-- Toast Container -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
-
-<style>
-    .product-gallery .main-image {
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 10px;
-        background: #fff;
-    }
-
-    .product-gallery .thumbnail {
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .product-gallery .thumbnail:hover {
-        border-color: #0d6efd;
-    }
-
-    .product-title {
-        font-size: 2rem;
-        margin-bottom: 1rem;
-    }
-
-    .old-price {
-        text-decoration: line-through;
-        color: #6c757d;
-        margin-right: 10px;
-    }
-
-    .current-price {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #0d6efd;
-    }
-
-    .discount-badge {
-        background: #dc3545;
-        color: white;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        margin-right: 10px;
-    }
-
-    .quantity-selector .form-control {
-        text-align: center;
-    }
-
-    .quantity-selector .btn {
-        width: 38px;
-    }
-</style>
+<link href="~/css/item.css" rel="stylesheet" />
 
 @section Scripts {
     <script>
+        function updateMainImage(src) {
+            $('.main-product-image').attr('src', src);
+        }
+
         function updateQuantity(change) {
-            var input = document.getElementById('quantity');
-            var newValue = parseInt(input.value) + change;
-            if (newValue >= 1) {
-                input.value = newValue;
+            const quantityInput = $('#quantity');
+            let currentValue = parseInt(quantityInput.val());
+            let newValue = currentValue + change;
+            
+            if (newValue >= 1 && newValue <= 99) {
+                quantityInput.val(newValue);
             }
         }
 
-        function addToCart(productId, quantity) {
-            $.ajax({
-                url: '/Home/AddToCart',
-                type: 'POST',
-                data: {
-                    productId: productId,
-                    quantity: quantity,
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                },
-                success: function (result) {
-                    showToast('Success', 'Product added to cart!', 'success');
-                    updateCartCount(result.cartCount);
-                },
-                error: function () {
-                    showToast('Error', 'Failed to add product to cart', 'error');
+        async function addToCart(productId) {
+            try {
+                const quantity = parseInt($('#quantity').val());
+                if (isNaN(quantity) || quantity < 1) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Quantity',
+                        text: 'Please enter a valid quantity'
+                    });
+                    return;
+                }
+
+                const response = await fetch('@Url.Action("AddToCart", "Cart")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': $('#antiforgeryToken').val()
+                    },
+                    body: JSON.stringify({ productId, quantity })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Added to Cart!',
+                        text: 'Product has been added to your cart',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+
+                    // Update cart count in navbar if you have one
+                    updateCartCount();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: result.message || 'Failed to add product to cart'
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'An error occurred while adding the product to cart'
+                });
+            }
+        }
+
+        async function updateCartCount() {
+            try {
+                const response = await fetch('@Url.Action("GetCartCount", "Cart")');
+                const count = await response.json();
+                $('.cart-count').text(count);
+            } catch (error) {
+                console.error('Error updating cart count:', error);
+            }
+        }
+
+        // Initialize quantity input validation
+        $(document).ready(function() {
+            $('#quantity').on('input', function() {
+                let value = parseInt($(this).val());
+                if (isNaN(value) || value < 1) {
+                    $(this).val(1);
+                } else if (value > 99) {
+                    $(this).val(99);
                 }
             });
-        }
-
-        function showToast(title, message, type) {
-            $('.toast').toast('hide');
-            const toast = $(`
-                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                    <div class="toast-header">
-                        <strong class="me-auto">${title}</strong>
-                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                    <div class="toast-body">
-                        ${message}
-                    </div>
-                </div>
-            `);
-            $('.toast-container').append(toast);
-            toast.toast('show');
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        function updateCartCount(count) {
-            $.get('/home/cartcount', function(count) {
-                $('.cart-badge').text(count);
-            });
-        }
-
-        // Thumbnail image click handler
-        $('.thumbnail').click(function() {
-            var newSrc = $(this).attr('src');
-            $('.main-image img').attr('src', newSrc);
         });
     </script>
 }
