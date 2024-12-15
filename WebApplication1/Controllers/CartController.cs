@@ -37,22 +37,22 @@ namespace WebApplication1.Controllers
             return View(cartItems);
         }
 
-        [HttpPost]
+                [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateQuantity(int cartId, int change)
+        public async Task<IActionResult> UpdateQuantity([FromBody] UpdateQuantityModel model)
         {
             try
             {
                 var userId = GetUserId();
                 var cartItem = await _db.Carts
-                    .FirstOrDefaultAsync(c => c.Id == cartId && c.UserId == userId);
+                    .FirstOrDefaultAsync(c => c.Id == model.CartId && c.UserId == userId);
 
                 if (cartItem == null)
                 {
                     return Json(new { success = false, message = "Cart item not found" });
                 }
 
-                var newQuantity = cartItem.Qty + change;
+                var newQuantity = cartItem.Qty + model.Change;
                 if (newQuantity <= 0)
                 {
                     _db.Carts.Remove(cartItem);
@@ -74,6 +74,12 @@ namespace WebApplication1.Controllers
             {
                 return Json(new { success = false, message = "Failed to update quantity" });
             }
+        }
+
+        public class UpdateQuantityModel
+        {
+            public int CartId { get; set; }
+            public int Change { get; set; }
         }
 
         [HttpPost]
@@ -129,29 +135,39 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RemoveFromCart(int cartId)
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> RemoveFromCart([FromBody] CartIdModel model)
+{
+    try
+    {
+        var userId = GetUserId();
+        var cartItem = await _db.Carts
+            .FirstOrDefaultAsync(c => c.Id == model.CartId && c.UserId == userId);
+
+        if (cartItem == null)
         {
-            try
-            {
-                var userId = GetUserId();
-                var cartItem = await _db.Carts
-                    .FirstOrDefaultAsync(c => c.Id == cartId && c.UserId == userId);
-
-                if (cartItem == null)
-                {
-                    return Json(new { success = false, message = "Cart item not found" });
-                }
-
-                _db.Carts.Remove(cartItem);
-                await _db.SaveChangesAsync();
-                return Json(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Failed to remove item from cart" });
-            }
+            var existingItems = await _db.Carts
+                .Where(c => c.UserId == userId)
+                .Select(c => c.Id)
+                .ToListAsync();
+            var debugMessage = $"Cart item {model.CartId} not found. Available cart IDs: {string.Join(", ", existingItems)}";
+            return Json(new { success = false, message = debugMessage });
         }
+
+        _db.Carts.Remove(cartItem);
+        await _db.SaveChangesAsync();
+        return Json(new { success = true });
+    }
+    catch (Exception ex)
+    {
+        return Json(new { success = false, message = "Failed to remove item from cart" });
+    }
+}
+
+public class CartIdModel
+{
+    public int CartId { get; set; }
+}
 
         [HttpGet]
         public async Task<IActionResult> GetCartCount()
