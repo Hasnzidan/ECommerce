@@ -63,7 +63,7 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (files == null || !files.Any())
+                if (files == null || files.Count == 0)
                 {
                     ModelState.AddModelError("", "Please select at least one image file.");
                     ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", productImage.ProductId);
