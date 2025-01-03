@@ -82,9 +82,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Contact
 
-Your Name - [@hasnzidan](https://github.com/hasnzidan)
+[@hasnzidan](https://github.com/hasnzidan)
 
-Project Link: [https://github.com/hasnzidan/E-Commerce](https://github.com/hasnzidan/E-Commerce)
+ [https://github.com/hasnzidan/E-Commerce](https://github.com/hasnzidan/E-Commerce)
 
 ---
 Last Updated: 2025-01-03
