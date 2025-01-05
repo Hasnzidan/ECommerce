@@ -32,7 +32,7 @@ This is a full-featured e-commerce platform that provides a seamless shopping ex
 - SQL Server
 - Visual Studio 2022 (recommended) or VS Code
 
-- ![Alt](https://repobeats.axiom.co/api/embed/2dd265dcb74bb44a361fcead17e108322fde1e0b.svg "Repobeats analytics image")
+
 
 ### Installation
 
@@ -85,6 +85,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Contact
 
 [@hasnzidan](https://github.com/hasnzidan)
+
+
+- ![Alt](https://repobeats.axiom.co/api/embed/2dd265dcb74bb44a361fcead17e108322fde1e0b.svg "Repobeats analytics image")
 
  [https://github.com/hasnzidan/E-Commerce](https://github.com/hasnzidan/E-Commerce)
 
