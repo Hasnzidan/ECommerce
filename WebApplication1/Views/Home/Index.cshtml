@@ -1,4 +1,4 @@
-@model WebApplication1.Controllers.ViewModels.PaginatedListViewModel
+@model IEnumerable<WebApplication1.Models.Product>
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @inject Microsoft.AspNetCore.Identity.SignInManager<Microsoft.AspNetCore.Identity.IdentityUser> SignInManager
 @{
@@ -35,7 +35,7 @@
             </div>
 
             <div class="row">
-                @foreach (var category in Model.Categories.Items)
+                @foreach (var category in ViewBag.Categories)
                 {
                     <div class="col-lg-4 col-md-6 mb-4">
                         <div class="category-card">
@@ -59,37 +59,6 @@
                     </div>
                 }
             </div>
-
-            <!-- Categories Pagination -->
-            @if (Model.Categories.TotalPages > 1)
-            {
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <nav>
-                            <ul class="pagination justify-content-center">
-                                @if (Model.Categories.HasPreviousPage)
-                                {
-                                    <li class="page-item">
-                                        <a class="page-link" href="@Url.Action("Index", new { pageCategory = Model.Categories.PageIndex - 1, pageProduct = Model.Products.PageIndex })">&laquo;</a>
-                                    </li>
-                                }
-                                @for (var i = 1; i <= Model.Categories.TotalPages; i++)
-                                {
-                                    <li class="page-item @(i == Model.Categories.PageIndex ? "active" : "")">
-                                        <a class="page-link" href="@Url.Action("Index", new { pageCategory = i, pageProduct = Model.Products.PageIndex })">@i</a>
-                                    </li>
-                                }
-                                @if (Model.Categories.HasNextPage)
-                                {
-                                    <li class="page-item">
-                                        <a class="page-link" href="@Url.Action("Index", new { pageCategory = Model.Categories.PageIndex + 1, pageProduct = Model.Products.PageIndex })">&raquo;</a>
-                                    </li>
-                                }
-                            </ul>
-                        </nav>
-                    </div>
-                </div>
-            }
         </div>
     </section>
 
@@ -102,7 +71,7 @@
             </div>
 
             <div class="row">
-                @foreach (var product in Model.Products.Items)
+                @foreach (var product in Model)
                 {
                     <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
                         <div class="product-card">
@@ -133,7 +102,7 @@
                                 <div class="product-actions">
                                     @if (SignInManager.IsSignedIn(User))
                                     {
-                                        <button class="btn btn-primary add-to-cart" data-product-id="@product.Id" data-request-token="@token">
+                                        <button class="btn btn-primary add-to-cart" onclick="addToCart(@product.Id, 1)">
                                             <i class="bi bi-cart-plus"></i> Add to Cart
                                         </button>
                                     }
@@ -152,37 +121,6 @@
                     </div>
                 }
             </div>
-
-            <!-- Products Pagination -->
-            @if (Model.Products.TotalPages > 1)
-            {
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <nav>
-                            <ul class="pagination justify-content-center">
-                                @if (Model.Products.HasPreviousPage)
-                                {
-                                    <li class="page-item">
-                                        <a class="page-link" href="@Url.Action("Index", new { pageProduct = Model.Products.PageIndex - 1, pageCategory = Model.Categories.PageIndex })">&laquo;</a>
-                                    </li>
-                                }
-                                @for (var i = 1; i <= Model.Products.TotalPages; i++)
-                                {
-                                    <li class="page-item @(i == Model.Products.PageIndex ? "active" : "")">
-                                        <a class="page-link" href="@Url.Action("Index", new { pageProduct = i, pageCategory = Model.Categories.PageIndex })">@i</a>
-                                    </li>
-                                }
-                                @if (Model.Products.HasNextPage)
-                                {
-                                    <li class="page-item">
-                                        <a class="page-link" href="@Url.Action("Index", new { pageProduct = Model.Products.PageIndex + 1, pageCategory = Model.Categories.PageIndex })">&raquo;</a>
-                                    </li>
-                                }
-                            </ul>
-                        </nav>
-                    </div>
-                </div>
-            }
         </div>
     </section>
 
@@ -213,42 +151,45 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function () {
-            $('.add-to-cart').click(function () {
-                var productId = $(this).data('product-id');
-                var token = $(this).data('request-token');
-                
-                $.ajax({
-                    url: '/Cart/AddToCart',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    headers: {
-                        'RequestVerificationToken': token
-                    },
-                    data: JSON.stringify({
-                        productId: productId,
-                        quantity: 1
-                    }),
-                    success: function (response) {
-                        if (response.success) {
-                            showToast('Success', 'Product added to cart successfully');
-                        } else {
-                            showToast('Error', response.message || 'Failed to add product to cart');
-                        }
-                    },
-                    error: function () {
-                        showToast('Error', 'An error occurred while adding the product to cart');
+        function addToCart(productId, quantity) {
+            $.ajax({
+                url: '/Cart/AddToCart',
+                type: 'POST',
+                contentType: 'application/json',
+                headers: {
+                    'RequestVerificationToken': '@token'
+                },
+                data: JSON.stringify({
+                    productId: productId,
+                    quantity: quantity
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'Product added to cart successfully',
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(function() {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: response.message || 'Failed to add product to cart'
+                        });
                     }
-                });
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'An error occurred while adding the product to cart'
+                    });
+                }
             });
-
-            function showToast(title, message) {
-                var toast = $('#liveToast');
-                toast.find('.me-auto').text(title);
-                toast.find('.toast-body').text(message);
-                var bsToast = new bootstrap.Toast(toast);
-                bsToast.show();
-            }
-        });
+        }
     </script>
 }
