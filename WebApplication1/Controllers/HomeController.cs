@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using WebApplication1.Models;
 using WebApplication1.Data;
 using Microsoft.EntityFrameworkCore;
-using WebApplication1.Controllers.ViewModels;
+using WebApplication1.ViewModels;
 
 namespace WebApplication1.Controllers
 {
