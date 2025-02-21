@@ -1,10 +1,9 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 
 namespace WebApplication1.Data
 {
-    public class SouqcomContext : IdentityDbContext
+    public class SouqcomContext : DbContext
     {
         public SouqcomContext(DbContextOptions<SouqcomContext> options)
             : base(options)
@@ -19,8 +18,6 @@ namespace WebApplication1.Data
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(builder);
-
             // Configure Cart entity
             builder.Entity<Cart>(entity =>
             {

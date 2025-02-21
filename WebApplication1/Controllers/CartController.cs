@@ -158,7 +158,7 @@ public async Task<IActionResult> RemoveFromCart([FromBody] CartIdModel model)
         await _db.SaveChangesAsync();
         return Json(new { success = true });
     }
-    catch (Exception ex)
+    catch (Exception)
     {
         return Json(new { success = false, message = "Failed to remove item from cart" });
     }
