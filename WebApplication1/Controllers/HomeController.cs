@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using WebApplication1.Models;
 using WebApplication1.Data;
 using Microsoft.EntityFrameworkCore;
-using WebApplication1.Controllers.ViewModels;
 
 namespace WebApplication1.Controllers
 {
@@ -16,7 +15,6 @@ namespace WebApplication1.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly SouqcomContext _context;
-        private readonly int _pageSize = 8;
 
         public HomeController(ILogger<HomeController> logger, SouqcomContext context)
         {
@@ -24,34 +22,23 @@ namespace WebApplication1.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(int? pageProduct = 1, int? pageCategory = 1)
+        public IActionResult Index()
         {
             try
             {
-                var productsQuery = _context.Products
+                var products = _context.Products
                     .Include(p => p.ProductImage)
-                    .Include(p => p.Category);
-
-                var categoriesQuery = _context.Categories;
-
-                var viewModel = new PaginatedListViewModel
-                {
-                    Products = await PaginatedList<Product>.CreateAsync(
-                        productsQuery, pageProduct ?? 1, _pageSize),
-                    Categories = await PaginatedList<Category>.CreateAsync(
-                        categoriesQuery, pageCategory ?? 1, _pageSize)
-                };
-
-                return View(viewModel);
+                    .Include(p => p.Category)
+                    .ToList();
+                
+                ViewBag.Categories = _context.Categories.ToList();
+                return View(products);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading products and categories");
-                return View(new PaginatedListViewModel
-                {
-                    Products = new PaginatedList<Product>(new List<Product>(), 0, 1, _pageSize),
-                    Categories = new PaginatedList<Category>(new List<Category>(), 0, 1, _pageSize)
-                });
+                _logger.LogError(ex, "Error loading products");
+                ViewBag.Categories = new List<Category>();
+                return View(new List<Product>());
             }
         }
 
